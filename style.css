@@ -1,0 +1,37 @@
+(function(){
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  const scoreEl = document.getElementById('score');
+  const levelEl = document.getElementById('level');
+  const livesEl = document.getElementById('lives');
+  const startOverlay = document.getElementById('startOverlay');
+  const endOverlay = document.getElementById('endOverlay');
+  const endTitle = document.getElementById('endTitle');
+  const endText = document.getElementById('endText');
+  const startBtn = document.getElementById('startBtn');
+  const retryBtn = document.getElementById('retryBtn');
+
+  // ---------- Audio (tiny WebAudio synth, no assets needed) ----------
+  let actx;
+  function beep(freq, dur, type, vol){
+    try{
+      if(!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+      const o = actx.createOscillator();
+      const g = actx.createGain();
+      o.type = type || 'square';
+      o.frequency.value = freq;
+      g.gain.value = vol !== undefined ? vol : 0.06;
+      o.connect(g); g.connect(actx.destination);
+      o.start();
+      g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + dur);
+      o.stop(actx.currentTime + dur);
+    }catch(e){}
+  }
+  const sfx = {
+    paddle: ()=>beep(220,0.08,'square',0.05),
+    wall: ()=>beep(330,0.05,'square',0.04),
+    brick: (pitch)=>beep(440 + pitch*40,0.09,'square',0.06),
+    life: ()=>beep(140,0.3,'sawtooth',0.08),
+    win: ()=>{ [523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,0.18,'square',0.07),i*120)); },
